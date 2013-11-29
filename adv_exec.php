@@ -1,5 +1,5 @@
 <?
-$adv_exec_default_options = array('timeout'=>60);
+$adv_exec_default_options = array();
 
 // like system(), but returns:
 // array(result, "stdout", "stderr");
@@ -34,11 +34,14 @@ function adv_exec($cmd, $cwd=null, $env=null, $options=array()) {
   );
   $done=false;
 
-  $timestamp_terminate = time() + $options['timeout'];
+  $timestamp_terminate = null;
+  if (isset($options['timeout']))
+    $timestamp_terminate = time() + $options['timeout'];
 
-  while((!$done)&&($timestamp_terminate > time())) {
+  while((!$done) &&
+        ($timestamp_terminate === null || $timestamp_terminate > time())) {
     $streams=$orig_streams;
-    $time_left_till_terminate = $timestamp_terminate - time();
+    $time_left_till_terminate = ($timestamp_terminate === null ? 60 : $timestamp_terminate - time());
 
     stream_select(&$streams['read'], &$streams['write'], &$streams['except'], $time_left_till_terminate);
 
