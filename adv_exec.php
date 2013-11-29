@@ -25,11 +25,13 @@ function adv_exec($cmd, $cwd=null, $env=null, $timeout=60) {
   );
   $done=false;
 
-  while((!$done)&&($timeout>0)) {
+  $timestamp_terminate = time() + $timeout;
+
+  while((!$done)&&($timestamp_terminate > time())) {
     $streams=$orig_streams;
-    $t=time();
-    stream_select(&$streams['read'], &$streams['write'], &$streams['except'], $timeout);
-    $timeout-=(time()-$t);
+    $time_left_till_terminate = $timestamp_terminate - time();
+
+    stream_select(&$streams['read'], &$streams['write'], &$streams['except'], $time_left_till_terminate);
 
     foreach($streams['read'] as $stream) {
       if(feof($stream))
@@ -45,7 +47,7 @@ function adv_exec($cmd, $cwd=null, $env=null, $timeout=60) {
 
   $ret[0]=proc_close($proc);
 
-  if($timeout<=0)
+  if($timestamp_terminate <= time())
     $ret[0]="timeout";
 
   return $ret;
