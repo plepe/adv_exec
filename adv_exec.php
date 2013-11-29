@@ -45,10 +45,14 @@ function adv_exec($cmd, $cwd=null, $env=null, $timeout=60) {
     }
   }
 
-  $ret[0]=proc_close($proc);
-
-  if($timestamp_terminate <= time())
+  if($timestamp_terminate <= time()) {
+    proc_terminate($proc);
     $ret[0]="timeout";
+
+    proc_close($proc);
+  }
+  else
+    $ret[0]=proc_close($proc);
 
   return $ret;
 }
