@@ -1,5 +1,6 @@
 <?
-$adv_exec_default_options = array();
+if(!isset($adv_exec_default_options))
+  $adv_exec_default_options = array();
 
 // like system(), but returns:
 // array(result, "stdout", "stderr");
