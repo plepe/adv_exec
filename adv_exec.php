@@ -80,7 +80,7 @@ function adv_exec($cmd, $cwd=null, $env=null, $options=array()) {
     $ret[0]="timeout";
   }
   else
-    $ret[0]=proc_close($proc);
+    $ret[0]=$status['exitcode'];
 
   return $ret;
 }
