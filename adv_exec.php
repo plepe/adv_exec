@@ -1,7 +1,16 @@
 <?
+$adv_exec_default_options = array('timeout'=>60);
+
 // like system(), but returns:
 // array(result, "stdout", "stderr");
-function adv_exec($cmd, $cwd=null, $env=null, $timeout=60) {
+function adv_exec($cmd, $cwd=null, $env=null, $options=array()) {
+  global $adv_exec_default_options;
+
+  // copy default options into options
+  foreach($adv_exec_default_options as $k=>$v)
+    if(!isset($options[$k]))
+      $options[$k] = $v;
+
   $descriptors=array(
     1=>array("pipe", "w"),
     2=>array("pipe", "w"),
@@ -25,7 +34,7 @@ function adv_exec($cmd, $cwd=null, $env=null, $timeout=60) {
   );
   $done=false;
 
-  $timestamp_terminate = time() + $timeout;
+  $timestamp_terminate = time() + $options['timeout'];
 
   while((!$done)&&($timestamp_terminate > time())) {
     $streams=$orig_streams;
