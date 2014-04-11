@@ -18,5 +18,5 @@ int main(int argc, char *argv[]) {
   chroot(argv[1]);
   seteuid(getuid());
   printf("executing %s\n", argv[2]);
-  execv(argv[2], &argv[3]);
+  execvp(argv[2], &argv[2]);
 }
