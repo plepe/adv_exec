@@ -13,10 +13,41 @@ class AdvExec {
       if(!isset($this->options[$k]))
 	$this->options[$k] = $v;
 
+    if(array_key_exists('chroot', $this->options) && $this->options['chroot']) {
+      $this->chroot = "/tmp/" . uniqid();
+      mkdir($this->chroot);
+    }
   }
 
   function set_option($option, $value) {
     $this->options[$option] = $value;
+  }
+
+  function chroot_copy_libs($cmd) {
+    if(!isset($this->chroot))
+      return;
+
+    $f = popen("ldd {$cmd}", "r");
+    while($r = fgets($f)) {
+      $file = null;
+
+      if(preg_match("/^\t[^ ]+ => ([^ ]+) \(/", $r, $m))
+	$file = $m[1];
+      elseif(preg_match("/^\t([^ ]+) \(/", $r, $m))
+	$file = $m[1];
+
+      if($file) {
+	@mkdir(dirname("{$this->chroot}/{$file}"), 0777, true);
+	copy($file, "{$this->chroot}/{$file}");
+	chmod("{$this->chroot}/{$file}", 0700);
+      }
+    }
+    pclose($f);
+
+    // also copy the command itself and set executable flag
+    @mkdir(dirname("{$this->chroot}/{$cmd}"), 0777, true);
+    copy($cmd, "{$this->chroot}/{$cmd}");
+    chmod("{$this->chroot}/{$cmd}", 0700);
   }
 
   function exec($cmd, $cwd=null) {
@@ -26,6 +57,17 @@ class AdvExec {
     );
 
     $cmd=implode("\n", explode("\r\n", $cmd));
+
+    if($this->chroot) {
+      // make sure to copy all necessary libs to chroot env
+      $c = explode(" ", $cmd);
+      $c = $c[0];
+      $this->chroot_copy_libs($c);
+
+      // call command via chroot wrapper
+      $cmd = dirname(__FILE__)."/run_chroot {$this->chroot} {$cmd}";
+    }
+
     $proc=proc_open($cmd, $descriptors, $pipes, $cwd, $this->env);
     if(!is_resource($proc))
       return false;
@@ -91,6 +133,13 @@ class AdvExec {
       $ret[0]=$status['exitcode'];
 
     return $ret;
+  }
+
+  function __destruct() {
+    print "destruct called\n";
+    if($this->chroot) {
+      system("rm -r {$this->chroot}");
+    }
   }
 }
 

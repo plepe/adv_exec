@@ -36,3 +36,4 @@ result is exitcode or 'timeout' when execution needed to be terminated
 == Options ==
 The following options are available:
 * timeout: when timeout is exceeded terminate process
+* chroot: When set, create a temporary directory which will be used as chroot jail. Necessary libs for execution of the command will automatically be copied there.
