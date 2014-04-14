@@ -62,6 +62,12 @@ class AdvExec {
       // make sure to copy all necessary libs to chroot env
       $c = explode(" ", $cmd);
       $c = $c[0];
+      // if command has no absolute path, try to find executable
+      if(substr($c, 0, 1) != '/') {
+	$p = popen("which '{$c}'", "r");
+	$c = trim(fgets($p));
+	pclose($p);
+      }
       $this->chroot_copy_libs($c);
 
       // call command via chroot wrapper
