@@ -28,6 +28,13 @@ The following options are available:
 == Class: AdvExecChroot ==
 Like AdvExec, but executes command in a chroot jail which is created as temporary directory. Necessary libs for execution of the command will automatically be copied there.
 
+=== Options ===
+All options from AdvExec are available, and additionally:
+
+| Key | Value | Description | Example
+|-----|-------|-------------|---------
+| executables | array of executables with absolute paths | Copies those executables and their required shared libraries to the chroot jail. | 'commands'=>array('/bin/sh', '/usr/bin/perl')
+
 == Function ==
 Usage:
 ```php

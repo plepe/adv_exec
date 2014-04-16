@@ -47,6 +47,12 @@ class AdvExecChroot extends AdvExec {
     }
     $this->chroot_copy_libs($c);
 
+    if(array_key_exists('executables', $this->options)) {
+      foreach($this->options['executables'] as $additional_executable) {
+	$this->chroot_copy_libs($additional_executable);
+      }
+    }
+
     // call command via chroot wrapper
     $cmd = dirname(__FILE__)."/run_chroot {$this->chroot} {$cmd}";
 
