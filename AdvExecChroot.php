@@ -1,5 +1,7 @@
 <?
-include "adv_exec.php";
+if(!isset($modulekit)) {
+  require_once("AdvExec.php");
+}
 
 class AdvExecChroot extends AdvExec {
   function __construct($env=null, $options=array())  {
