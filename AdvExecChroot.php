@@ -9,6 +9,10 @@ class AdvExecChroot extends AdvExec {
 
     $this->chroot = "/tmp/" . uniqid();
     mkdir($this->chroot);
+
+    if(array_key_exists('copy', $this->options)) {
+      $this->chroot_copy_dirs($this->options['copy']);
+    }
   }
 
   function chroot_copy_libs($cmd) {
@@ -33,6 +37,20 @@ class AdvExecChroot extends AdvExec {
     @mkdir(dirname("{$this->chroot}/{$cmd}"), 0777, true);
     copy($cmd, "{$this->chroot}/{$cmd}");
     chmod("{$this->chroot}/{$cmd}", 0700);
+  }
+
+  function chroot_copy_dirs($list) {
+    foreach($list as $src=>$dest) {
+      if(is_numeric($src))
+	$src = $dest;
+
+      $src = realpath($src);
+      $dest = realpath($dest);
+
+      @mkdir(dirname("{$this->chroot}/{$dest}"), 0777, true);
+      chmod("{$this->chroot}/{$dest}", 0700);
+      system("rsync -a {$src}/ {$this->chroot}/{$dest}/");
+    }
   }
 
   function _exec_prepare($cmd, $cwd) {
@@ -68,6 +86,6 @@ class AdvExecChroot extends AdvExec {
   function __destruct() {
     parent::__destruct();
 
-    system("rm -r {$this->chroot}");
+    system("rm -rf {$this->chroot}");
   }
 }
