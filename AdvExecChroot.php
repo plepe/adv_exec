@@ -53,8 +53,12 @@ class AdvExecChroot extends AdvExec {
       }
     }
 
+    // if it doesn't exist, create the current working directory
+    @mkdir("{$this->chroot}/{$cwd}", 0777, true);
+    chmod("{$this->chroot}/{$cwd}", 0700);
+
     // call command via chroot wrapper
-    $cmd = dirname(__FILE__)."/run_chroot {$this->chroot} {$cmd}";
+    $cmd = dirname(__FILE__)."/run_chroot {$this->chroot} {$cwd} {$cmd}";
 
     return $cmd;
   }
@@ -65,5 +69,3 @@ class AdvExecChroot extends AdvExec {
     system("rm -r {$this->chroot}");
   }
 }
-
-
