@@ -13,6 +13,9 @@ class AdvExecChroot extends AdvExec {
     if(array_key_exists('copy', $this->options)) {
       $this->chroot_copy_dirs($this->options['copy']);
     }
+    if(array_key_exists('sync', $this->options)) {
+      $this->chroot_copy_dirs($this->options['sync']);
+    }
   }
 
   function chroot_copy_libs($cmd) {
@@ -85,6 +88,18 @@ class AdvExecChroot extends AdvExec {
 
   function __destruct() {
     parent::__destruct();
+
+    if(array_key_exists('sync', $this->options)) {
+      foreach($this->options['sync'] as $src=>$dest) {
+	if(is_numeric($src))
+	  $src = $dest;
+
+	$src = realpath($src);
+	$dest = realpath($dest);
+
+	system("rsync -a {$this->chroot}/{$dest}/ {$src}/");
+      }
+    }
 
     system("rm -rf {$this->chroot}");
   }
