@@ -35,6 +35,9 @@ class AdvExec {
       2=>array("pipe", "w"),
     );
 
+    if($cwd === null)
+      $cwd = getcwd();
+
     $cmd=$this->_exec_prepare($cmd, $cwd);
 
     $proc=proc_open($cmd, $descriptors, $pipes, $cwd, $this->env);
