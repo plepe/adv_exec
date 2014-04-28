@@ -10,6 +10,8 @@ class AdvExecChroot extends AdvExec {
     $this->chroot = "/tmp/" . uniqid();
     mkdir($this->chroot);
 
+    $this->prepare_fd = popen(dirname(__FILE__)."/prepare_chroot {$this->chroot}", "w");
+
     if(array_key_exists('copy', $this->options)) {
       $this->chroot_copy_dirs($this->options['copy']);
     }
@@ -18,8 +20,7 @@ class AdvExecChroot extends AdvExec {
     }
     if(array_key_exists('mount', $this->options)) {
       foreach($this->options['mount'] as $m) {
-	$cmd = dirname(__FILE__)."/prepare_chroot -m \"$m\" {$this->chroot}";
-	system($cmd);
+	fwrite($this->prepare_fd, "M{$m}\n");
       }
     }
   }
@@ -106,6 +107,8 @@ class AdvExecChroot extends AdvExec {
 	system("rsync -a {$this->chroot}/{$dest}/ {$src}/");
       }
     }
+
+    pclose($this->prepare_fd);
 
     system("rm -rf {$this->chroot}");
   }
