@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mount.h>
+#include <sys/stat.h>
 
 char *final_path(char *chroot_path, char *path) {
   char *ret;
@@ -50,6 +51,25 @@ void cleanup() {
   system(buf);
 }
 
+// from http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+static void mkdir_parents(const char *dir) {
+  char tmp[256];
+  char *p = NULL;
+  size_t len;
+
+  snprintf(tmp, sizeof(tmp),"%s",dir);
+  len = strlen(tmp);
+  if(tmp[len - 1] == '/')
+    tmp[len - 1] = 0;
+  for(p = tmp + 1; *p; p++)
+    if(*p == '/') {
+      *p = 0;
+      mkdir(tmp, S_IRWXU);
+      *p = '/';
+    }
+  mkdir(tmp, S_IRWXU);
+}
+
 int main(int argc, char *argv[]) {
   int c;
   char r[1024];
@@ -94,6 +114,8 @@ int main(int argc, char *argv[]) {
     switch(cmd) {
       case 'C':
       case 'R':
+	mkdir_parents(final_dest);
+
 	buf = (char*)malloc(32 + strlen(src) + strlen(final_dest));
 	sprintf(buf, "rsync -a \"%s/\" \"%s/\"", src, final_dest);
 
@@ -118,7 +140,7 @@ int main(int argc, char *argv[]) {
 
       case 'M':
 	printf("mount %s => %s\n", src, dest);
-	mkdir(final_dest);
+	mkdir_parents(final_dest);
 	if(err = mount(src, final_dest, NULL, MS_BIND, NULL)) {
 	  printf("Error mounting %s to %s: %i (%s)\n", src, final_dest, err, strerror(err));
 	  cleanup();
