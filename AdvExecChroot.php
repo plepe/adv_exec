@@ -16,6 +16,12 @@ class AdvExecChroot extends AdvExec {
     if(array_key_exists('sync', $this->options)) {
       $this->chroot_copy_dirs($this->options['sync']);
     }
+    if(array_key_exists('mount', $this->options)) {
+      foreach($this->options['mount'] as $m) {
+	$cmd = dirname(__FILE__)."/prepare_chroot -m \"$m\" {$this->chroot}";
+	system($cmd);
+      }
+    }
   }
 
   function chroot_copy_libs($cmd) {
