@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
   int r_length;
   char *p;
   int err;
+  FILE *stdin;
 
   if(argc < 2) {
     printf("Usage: prepare_chroot [options] PATH\n");
@@ -37,8 +38,10 @@ int main(int argc, char *argv[]) {
 
   printf("DIR %s\n", chroot_path);
 
-  while(r_length = read(0, r, 1024)) {
-    r[r_length - 1] = '\0';
+  stdin = fdopen(0, "r");
+
+  while(fgets(r, 1024, stdin) != NULL) {
+    r[strlen(r) - 1] = '\0';
 
     switch(r[0]) {
       case 'M':
