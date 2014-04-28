@@ -35,6 +35,7 @@ All options from AdvExec are available, and additionally:
 |-----|-------|-------------|---------
 | executables | array of executables with absolute paths | Copies those executables and their required shared libraries to the chroot jail. | 'commands'=>array('/bin/sh', '/usr/bin/perl')
 | copy | array of directories, either src=>dest or src only (will use same directory as dest) | Copies the full tree of the specified directories. | 'copy'=>array('/tmp', '/home/skunk'=>'/foo')
+| mount | array of directories, either src=>dest or src only (will use same directory as dest) | Mounts the src directory to the dest directory in the chroot jail (via bind) | 'mount'=>array('/proc', '/home/skunk'=>'/foo')
 
 == Function ==
 Usage:
