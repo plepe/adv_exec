@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
   char *p;
   int err;
   FILE *stdin;
+  char *src;
+  char *dest;
 
   if(argc < 2) {
     printf("Usage: prepare_chroot [options] PATH\n");
@@ -60,18 +62,23 @@ int main(int argc, char *argv[]) {
 
     switch(r[0]) {
       case 'M':
-	p = final_path(chroot_path, &r[1]);
+	src = &r[1];
+	dest = strstr(&r[1], "\t");
+	dest[0] = '\0';
+	dest = &dest[1];
 
-	printf("mount %s => %s\n", &r[1], p);
+	p = final_path(chroot_path, dest);
+
+	printf("mount %s => %s\n", src, dest);
 	mkdir(p);
-	if(err = mount(&r[1], p, NULL, MS_BIND, NULL)) {
-	  printf("Error mounting %s to %s: %i (%s)\n", &r[1], p, err, strerror(err));
+	if(err = mount(src, p, NULL, MS_BIND, NULL)) {
+	  printf("Error mounting %s to %s: %i (%s)\n", src, p, err, strerror(err));
 	  cleanup();
 	  exit(1);
 	}
 
 	if(mounts_count >= MOUNT_MAX) {
-	  printf("Error mounting %s; max. %d mounts possible.\n", &r[1], MOUNT_MAX);
+	  printf("Error mounting %s; max. %d mounts possible.\n", src, MOUNT_MAX);
 	  cleanup();
 	  exit(1);
 	}

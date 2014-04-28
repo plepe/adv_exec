@@ -3,6 +3,18 @@ if(!isset($modulekit)) {
   require_once("AdvExec.php");
 }
 
+function chroot_src_dest($src, $dest) {
+  if(is_numeric($src))
+    $src = $dest;
+
+  $src = realpath($src);
+  $x = realpath($dest);
+  if($x)
+    $dest = $x;
+
+  return array($src, $dest);
+}
+
 class AdvExecChroot extends AdvExec {
   function __construct($env=null, $options=array())  {
     parent::__construct($env, $options);
@@ -19,8 +31,10 @@ class AdvExecChroot extends AdvExec {
       $this->chroot_copy_dirs($this->options['sync']);
     }
     if(array_key_exists('mount', $this->options)) {
-      foreach($this->options['mount'] as $m) {
-	fwrite($this->prepare_fd, "M{$m}\n");
+      foreach($this->options['mount'] as $src=>$dest) {
+	list($src, $dest) = chroot_src_dest($src, $dest);
+
+	fwrite($this->prepare_fd, "M{$src}\t{$dest}\n");
       }
     }
   }
