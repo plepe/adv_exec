@@ -65,11 +65,7 @@ class AdvExecChroot extends AdvExec {
 
   function chroot_copy_dirs($list) {
     foreach($list as $src=>$dest) {
-      if(is_numeric($src))
-	$src = $dest;
-
-      $src = realpath($src);
-      $dest = realpath($dest);
+      list($src, $dest) = chroot_src_dest($src, $dest);
 
       @mkdir(dirname("{$this->chroot}/{$dest}"), 0777, true);
       chmod("{$this->chroot}/{$dest}", 0700);
@@ -112,11 +108,7 @@ class AdvExecChroot extends AdvExec {
 
     if(array_key_exists('sync', $this->options)) {
       foreach($this->options['sync'] as $src=>$dest) {
-	if(is_numeric($src))
-	  $src = $dest;
-
-	$src = realpath($src);
-	$dest = realpath($dest);
+	list($src, $dest) = chroot_src_dest($src, $dest);
 
 	system("rsync -a {$this->chroot}/{$dest}/ {$src}/");
       }
