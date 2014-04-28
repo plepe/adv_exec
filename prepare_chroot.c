@@ -19,9 +19,15 @@ char *final_path(char *chroot_path, char *path) {
 #define MOUNT_MAX 16
 char *mounts[MOUNT_MAX];
 int mounts_count = 0;
+#define RSYNC_MAX 16
+char *rsync_src[RSYNC_MAX];
+char *rsync_dest[RSYNC_MAX];
+int rsync_count = 0;
+char *chroot_path;
 
 void cleanup() {
   int c = 0;
+  char *buf;
 
   for(c = 0; c < mounts_count; c++) {
     printf("umount %s\n", mounts[c]);
@@ -29,18 +35,32 @@ void cleanup() {
 
     free(mounts[c]);
   }
+
+  for(c = 0; c < rsync_count; c++) {
+    buf = (char*)malloc(32 + strlen(rsync_src[c]) + strlen(rsync_dest[c]));
+    sprintf(buf, "rsync -a \"%s/\" \"%s/\"", rsync_dest[c], rsync_src[c]);
+
+    printf("%s\n", buf);
+    system(buf);
+  }
+
+  buf = (char*)malloc(32 + strlen(chroot_path));
+  sprintf(buf, "rm -rf \"%s\"", chroot_path);
+  printf("%s\n", buf);
+  system(buf);
 }
 
 int main(int argc, char *argv[]) {
   int c;
-  char *chroot_path;
   char r[1024];
   int r_length;
-  char *p;
   int err;
   FILE *stdin;
+  char cmd;
   char *src;
   char *dest;
+  char *final_dest;
+  char *buf;
 
   if(argc < 2) {
     printf("Usage: prepare_chroot [options] PATH\n");
@@ -59,20 +79,48 @@ int main(int argc, char *argv[]) {
 
   while(fgets(r, 1024, stdin) != NULL) {
     r[strlen(r) - 1] = '\0';
+    cmd = r[0];
+    src = &r[1];
+    dest = strstr(&r[1], "\t");
+    if(dest == NULL) {
+      final_dest = NULL;
+    }
+    else {
+      dest[0] = '\0';
+      dest = &dest[1];
+      final_dest = final_path(chroot_path, dest);
+    }
 
-    switch(r[0]) {
+    switch(cmd) {
+      case 'C':
+      case 'R':
+	buf = (char*)malloc(32 + strlen(src) + strlen(final_dest));
+	sprintf(buf, "rsync -a \"%s/\" \"%s/\"", src, final_dest);
+
+	printf("%s\n", buf);
+	system(buf);
+
+	if(cmd == 'C') {
+	  free(buf);
+	}
+	else if(cmd == 'R') {
+	  if(rsync_count >= RSYNC_MAX) {
+	    printf("Warning: can't rsync %s=>%s, RSYNC_MAX(%d) reached.\n", src, dest, RSYNC_MAX);
+	  }
+	  else {
+	    rsync_src[rsync_count] = (char*)malloc(strlen(src) + 1);
+	    strcpy(rsync_src[rsync_count], src);
+	    rsync_dest[rsync_count++] = final_dest;
+	  }
+	}
+
+	break;
+
       case 'M':
-	src = &r[1];
-	dest = strstr(&r[1], "\t");
-	dest[0] = '\0';
-	dest = &dest[1];
-
-	p = final_path(chroot_path, dest);
-
 	printf("mount %s => %s\n", src, dest);
-	mkdir(p);
-	if(err = mount(src, p, NULL, MS_BIND, NULL)) {
-	  printf("Error mounting %s to %s: %i (%s)\n", src, p, err, strerror(err));
+	mkdir(final_dest);
+	if(err = mount(src, final_dest, NULL, MS_BIND, NULL)) {
+	  printf("Error mounting %s to %s: %i (%s)\n", src, final_dest, err, strerror(err));
 	  cleanup();
 	  exit(1);
 	}
@@ -83,11 +131,12 @@ int main(int argc, char *argv[]) {
 	  exit(1);
 	}
 
-	mounts[mounts_count++] = p;
+	mounts[mounts_count++] = final_dest;
 	break;
 
       default:
         printf("Invalid command %c\n", r[0]);
+	free(final_dest);
     }
   }
 

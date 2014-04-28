@@ -25,15 +25,22 @@ class AdvExecChroot extends AdvExec {
     $this->prepare_fd = popen(dirname(__FILE__)."/prepare_chroot {$this->chroot}", "w");
 
     if(array_key_exists('copy', $this->options)) {
-      $this->chroot_copy_dirs($this->options['copy']);
+      foreach($this->options['copy'] as $src=>$dest) {
+	list($src, $dest) = chroot_src_dest($src, $dest);
+	fwrite($this->prepare_fd, "C{$src}\t{$dest}\n");
+      }
     }
+
     if(array_key_exists('sync', $this->options)) {
-      $this->chroot_copy_dirs($this->options['sync']);
+      foreach($this->options['copy'] as $src=>$dest) {
+	list($src, $dest) = chroot_src_dest($src, $dest);
+	fwrite($this->prepare_fd, "R{$src}\t{$dest}\n");
+      }
     }
+
     if(array_key_exists('mount', $this->options)) {
       foreach($this->options['mount'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-
 	fwrite($this->prepare_fd, "M{$src}\t{$dest}\n");
       }
     }
@@ -61,16 +68,6 @@ class AdvExecChroot extends AdvExec {
     @mkdir(dirname("{$this->chroot}/{$cmd}"), 0777, true);
     copy($cmd, "{$this->chroot}/{$cmd}");
     chmod("{$this->chroot}/{$cmd}", 0700);
-  }
-
-  function chroot_copy_dirs($list) {
-    foreach($list as $src=>$dest) {
-      list($src, $dest) = chroot_src_dest($src, $dest);
-
-      @mkdir(dirname("{$this->chroot}/{$dest}"), 0777, true);
-      chmod("{$this->chroot}/{$dest}", 0700);
-      system("rsync -a {$src}/ {$this->chroot}/{$dest}/");
-    }
   }
 
   function _exec_prepare($cmd, $cwd) {
@@ -106,16 +103,6 @@ class AdvExecChroot extends AdvExec {
   function __destruct() {
     parent::__destruct();
 
-    if(array_key_exists('sync', $this->options)) {
-      foreach($this->options['sync'] as $src=>$dest) {
-	list($src, $dest) = chroot_src_dest($src, $dest);
-
-	system("rsync -a {$this->chroot}/{$dest}/ {$src}/");
-      }
-    }
-
     pclose($this->prepare_fd);
-
-    system("rm -rf {$this->chroot}");
   }
 }
