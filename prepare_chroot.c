@@ -16,6 +16,21 @@ char *final_path(char *chroot_path, char *path) {
   return ret;
 }
 
+#define MOUNT_MAX 16
+char *mounts[MOUNT_MAX];
+int mounts_count = 0;
+
+void cleanup() {
+  int c = 0;
+
+  for(c = 0; c < mounts_count; c++) {
+    printf("umount %s\n", mounts[c]);
+    umount(mounts[c]);
+
+    free(mounts[c]);
+  }
+}
+
 int main(int argc, char *argv[]) {
   int c;
   char *chroot_path;
@@ -51,10 +66,17 @@ int main(int argc, char *argv[]) {
 	mkdir(p);
 	if(err = mount(&r[1], p, NULL, MS_BIND, NULL)) {
 	  printf("Error mounting %s to %s: %i (%s)\n", &r[1], p, err, strerror(err));
+	  cleanup();
 	  exit(1);
 	}
 
-	free(p);
+	if(mounts_count >= MOUNT_MAX) {
+	  printf("Error mounting %s; max. %d mounts possible.\n", &r[1], MOUNT_MAX);
+	  cleanup();
+	  exit(1);
+	}
+
+	mounts[mounts_count++] = p;
 	break;
 
       default:
@@ -62,5 +84,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  cleanup();
   exit(0);
 }
