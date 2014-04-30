@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 
 char *final_path(char *chroot_path, char *path) {
   char *ret;
@@ -52,7 +53,8 @@ void cleanup() {
 }
 
 // from http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-static void mkdir_parents(const char *dir) {
+// final: also create final directory, e.g. mkdir_parents("/tmp/foo/bar", false) will create "/tmp" and "/tmp/foo"; mkdir_parents("/tmp/foo/bar", true) will create "/tmp" and "/tmp/foo" and "/tmp/foo/bar/"
+static void mkdir_parents(const char *dir, bool final) {
   char tmp[256];
   char *p = NULL;
   size_t len;
@@ -64,10 +66,12 @@ static void mkdir_parents(const char *dir) {
   for(p = tmp + 1; *p; p++)
     if(*p == '/') {
       *p = 0;
-      mkdir(tmp, S_IRWXU);
+      mkdir(tmp, 0755);
       *p = '/';
     }
-  mkdir(tmp, S_IRWXU);
+
+  if(final)
+    mkdir(tmp, 0755);
 }
 
 int main(int argc, char *argv[]) {
@@ -109,7 +113,7 @@ int main(int argc, char *argv[]) {
     switch(cmd) {
       case 'C':
       case 'R':
-	mkdir_parents(final_dest);
+	mkdir_parents(final_dest, false);
 
 	buf = (char*)malloc(32 + strlen(src) + strlen(final_dest));
 	sprintf(buf, "rsync -a \"%s\" \"%s\"", src, final_dest);
@@ -138,7 +142,7 @@ int main(int argc, char *argv[]) {
 
       case 'M':
 	printf("mount %s => %s\n", src, dest);
-	mkdir_parents(final_dest);
+	mkdir_parents(final_dest, true);
 	if(err = mount(src, final_dest, NULL, MS_BIND, NULL)) {
 	  printf("Error mounting %s to %s: %i (%s)\n", src, final_dest, err, strerror(err));
 	  cleanup();
