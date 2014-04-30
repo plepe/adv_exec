@@ -39,7 +39,7 @@ void cleanup() {
 
   for(c = 0; c < rsync_count; c++) {
     buf = (char*)malloc(32 + strlen(rsync_src[c]) + strlen(rsync_dest[c]));
-    sprintf(buf, "rsync -a \"%s/\" \"%s/\"", rsync_dest[c], rsync_src[c]);
+    sprintf(buf, "rsync -a \"%s\" \"%s\"", rsync_dest[c], rsync_src[c]);
 
     printf("%s\n", buf);
     system(buf);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 	mkdir_parents(final_dest);
 
 	buf = (char*)malloc(32 + strlen(src) + strlen(final_dest));
-	sprintf(buf, "rsync -a \"%s/\" \"%s/\"", src, final_dest);
+	sprintf(buf, "rsync -a \"%s\" \"%s\"", src, final_dest);
 
 	printf("%s\n", buf);
 	system(buf);

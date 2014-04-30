@@ -27,14 +27,14 @@ class AdvExecChroot extends AdvExec {
     if(array_key_exists('copy', $this->options)) {
       foreach($this->options['copy'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-	fwrite($this->prepare_fd, "C{$src}\t{$dest}\n");
+	fwrite($this->prepare_fd, "C{$src}/\t{$dest}/\n");
       }
     }
 
     if(array_key_exists('sync', $this->options)) {
-      foreach($this->options['copy'] as $src=>$dest) {
+      foreach($this->options['sync'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-	fwrite($this->prepare_fd, "R{$src}\t{$dest}\n");
+	fwrite($this->prepare_fd, "R{$src}/\t{$dest}/\n");
       }
     }
 
@@ -57,17 +57,13 @@ class AdvExecChroot extends AdvExec {
 	$file = $m[1];
 
       if($file) {
-	@mkdir(dirname("{$this->chroot}/{$file}"), 0777, true);
-	copy($file, "{$this->chroot}/{$file}");
-	chmod("{$this->chroot}/{$file}", 0700);
+	fwrite($this->prepare_fd, "C{$file}\t{$file}\n");
       }
     }
     pclose($f);
 
     // also copy the command itself and set executable flag
-    @mkdir(dirname("{$this->chroot}/{$cmd}"), 0777, true);
-    copy($cmd, "{$this->chroot}/{$cmd}");
-    chmod("{$this->chroot}/{$cmd}", 0700);
+    fwrite($this->prepare_fd, "C{$cmd}\t{$cmd}\n");
   }
 
   function _exec_prepare($cmd, $cwd) {
