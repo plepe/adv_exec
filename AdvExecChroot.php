@@ -34,9 +34,6 @@ class AdvExecChroot extends AdvExec {
       exit(1);
     }
 
-    stream_set_blocking($this->prepare_pipes[1], 0);
-    stream_set_blocking($this->prepare_pipes[2], 0);
-
     if(array_key_exists('copy', $this->options)) {
       foreach($this->options['copy'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);

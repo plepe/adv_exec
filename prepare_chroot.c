@@ -75,7 +75,6 @@ int main(int argc, char *argv[]) {
   char r[1024];
   int r_length;
   int err;
-  FILE *stdin;
   char cmd;
   char *src;
   char *dest;
@@ -92,10 +91,6 @@ int main(int argc, char *argv[]) {
     printf("prepare_chroot is not set to suid root!\n");
     exit(1);
   }
-
-  printf("DIR %s\n", chroot_path);
-
-  stdin = fdopen(0, "r");
 
   while(fgets(r, 1024, stdin) != NULL) {
     r[strlen(r) - 1] = '\0';
@@ -123,6 +118,7 @@ int main(int argc, char *argv[]) {
 	err = system(buf);
 
 	printf("DONE%d\n", err);
+	fflush(stdout);
 
 	if(cmd == 'C') {
 	  free(buf);
@@ -150,6 +146,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("DONE%d\n", err);
+	fflush(stdout);
 
 	if(mounts_count >= MOUNT_MAX) {
 	  printf("Error mounting %s; max. %d mounts possible.\n", src, MOUNT_MAX);
