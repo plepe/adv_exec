@@ -66,7 +66,7 @@ class AdvExec {
       $streams=$orig_streams;
       $time_left_till_terminate = ($timestamp_terminate === null ? 60 : $timestamp_terminate - time());
 
-      stream_select(&$streams['read'], &$streams['write'], &$streams['except'], $time_left_till_terminate);
+      stream_select($streams['read'], $streams['write'], $streams['except'], $time_left_till_terminate);
 
       foreach($streams['read'] as $stream) {
 	if(feof($stream))
