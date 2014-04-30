@@ -1,6 +1,8 @@
 Like system() but with advanced options. Can be used either as class or function
 
-== Class: AdvExec ==
+Class: AdvExec
+==============
+
 Usage:
 ```php
 $x = new AdvExec([$env], [$options]);
@@ -15,20 +17,28 @@ array(result, "stdout", "stderr");
 result is exitcode or 'timeout' when execution needed to be terminated
 
 
-=== Options ===
+Options
+-------
+
 The following options are available:
 * timeout: when timeout is exceeded terminate process
 
-=== Available Methods ===
+Available Methods
+-----------------
+
 | Method | Parameters | Return value | Description
 |--------|------------|--------------|-------------
 | exec | cmd, [cwd] | array(result, stdout, stderr) | Execute a command in the specified environment; result is exitcode or 'timeout' when execution needed to be terminated
 | set_option | key, value | null | Change option to the new value; see below for a list of options
 
-== Class: AdvExecChroot ==
+Class: AdvExecChroot
+====================
+
 Like AdvExec, but executes command in a chroot jail which is created as temporary directory. Necessary libs for execution of the command will automatically be copied there.
 
-=== Options ===
+Options
+-------
+
 All options from AdvExec are available, and additionally:
 
 | Key | Value | Description | Example
@@ -37,7 +47,9 @@ All options from AdvExec are available, and additionally:
 | copy | array of directories, either src=>dest or src only (will use same directory as dest) | Copies the full tree of the specified directories. | 'copy'=>array('/tmp', '/home/skunk'=>'/foo')
 | mount | array of directories, either src=>dest or src only (will use same directory as dest) | Mounts the src directory to the dest directory in the chroot jail (via bind) | 'mount'=>array('/proc', '/home/skunk'=>'/foo')
 
-== Function ==
+Function adv_exec()
+===================
+
 Usage:
 ```php
 adv_exec($cmd, [$cwd], [$env], [$options]);
