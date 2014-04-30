@@ -120,7 +120,9 @@ int main(int argc, char *argv[]) {
 	sprintf(buf, "rsync -a \"%s\" \"%s\"", src, final_dest);
 
 	printf("%s\n", buf);
-	system(buf);
+	err = system(buf);
+
+	printf("DONE%d\n", err);
 
 	if(cmd == 'C') {
 	  free(buf);
@@ -146,6 +148,8 @@ int main(int argc, char *argv[]) {
 	  cleanup();
 	  exit(1);
 	}
+
+	printf("DONE%d\n", err);
 
 	if(mounts_count >= MOUNT_MAX) {
 	  printf("Error mounting %s; max. %d mounts possible.\n", src, MOUNT_MAX);

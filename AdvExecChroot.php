@@ -22,28 +22,54 @@ class AdvExecChroot extends AdvExec {
     $this->chroot = "/tmp/" . uniqid();
     mkdir($this->chroot);
 
-    $this->prepare_fd = popen(dirname(__FILE__)."/prepare_chroot {$this->chroot}", "w");
+    $prepare_fd_desc_spec = array(
+      0 => array("pipe", "r"),
+      1 => array("pipe", "w"),
+      2 => array("pipe", "w"),
+    );
+
+    $this->prepare_proc = proc_open(dirname(__FILE__)."/prepare_chroot {$this->chroot}", $prepare_fd_desc_spec, $this->prepare_pipes);
+    if(!is_resource($this->prepare_proc)) {
+      print "AdvExecChroot: Can't create prepare process\n";
+      exit(1);
+    }
+
+    stream_set_blocking($this->prepare_pipes[1], 0);
+    stream_set_blocking($this->prepare_pipes[2], 0);
 
     if(array_key_exists('copy', $this->options)) {
       foreach($this->options['copy'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-	fwrite($this->prepare_fd, "C{$src}/\t{$dest}/\n");
+	$this->prepare("C", array("{$src}/", "{$dest}/"));
       }
     }
 
     if(array_key_exists('sync', $this->options)) {
       foreach($this->options['sync'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-	fwrite($this->prepare_fd, "R{$src}/\t{$dest}/\n");
+	$this->prepare("R", array("{$src}/", "{$dest}/"));
       }
     }
 
     if(array_key_exists('mount', $this->options)) {
       foreach($this->options['mount'] as $src=>$dest) {
 	list($src, $dest) = chroot_src_dest($src, $dest);
-	fwrite($this->prepare_fd, "M{$src}\t{$dest}\n");
+	$this->prepare("M", array("{$src}/", "{$dest}/"));
       }
     }
+  }
+
+  function prepare($cmd, $param=array()) {
+    $s = $cmd . implode("\t", $param) . "\n";
+    fwrite($this->prepare_pipes[0], $s);
+
+    while($r = fgets($this->prepare_pipes[1])) {
+      if(preg_match("/^DONE(.*)/", $r, $m)) {
+	return $m[1];
+      }
+    }
+
+    return -1;
   }
 
   function chroot_copy_libs($cmd) {
@@ -57,13 +83,13 @@ class AdvExecChroot extends AdvExec {
 	$file = $m[1];
 
       if($file) {
-	fwrite($this->prepare_fd, "C{$file}\t{$file}\n");
+	$this->prepare("C", array($file, $file));
       }
     }
     pclose($f);
 
     // also copy the command itself and set executable flag
-    fwrite($this->prepare_fd, "C{$cmd}\t{$cmd}\n");
+    $this->prepare("C", array($cmd, $cmd));
   }
 
   function _exec_prepare($cmd, $cwd) {
@@ -99,6 +125,9 @@ class AdvExecChroot extends AdvExec {
   function __destruct() {
     parent::__destruct();
 
-    pclose($this->prepare_fd);
+    fclose($this->prepare_pipes[0]);
+    fclose($this->prepare_pipes[1]);
+    fclose($this->prepare_pipes[2]);
+    proc_close($this->prepare_proc);
   }
 }
