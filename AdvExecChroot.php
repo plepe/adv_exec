@@ -80,7 +80,7 @@ class AdvExecChroot extends AdvExec {
 	$file = $m[1];
 
       if($file) {
-	$this->prepare("C", array($file, $file));
+	$this->prepare("c", array($file, $file));
       }
     }
     pclose($f);

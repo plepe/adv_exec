@@ -111,6 +111,21 @@ int main(int argc, char *argv[]) {
     }
 
     switch(cmd) {
+      case 'c':
+	mkdir_parents(final_dest, false);
+
+	buf = (char*)malloc(32 + strlen(src) + strlen(final_dest));
+	sprintf(buf, "cp -p \"%s\" \"%s\"", src, final_dest);
+
+	printf("%s\n", buf);
+	err = system(buf);
+
+	printf("DONE%d\n", err);
+	fflush(stdout);
+
+	free(buf);
+	break;
+
       case 'C':
       case 'R':
 	mkdir_parents(final_dest, false);
