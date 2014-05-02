@@ -3,6 +3,18 @@ if(!isset($modulekit)) {
   require_once("AdvExec.php");
 }
 
+$adv_exec_chroot_cmds = array(
+  'mount'	=> array(
+    'prepare_cmd'	=> 'M',
+  ),
+  'sync'	=> array(
+    'prepare_cmd'	=> 'R',
+  ),
+  'copy'	=> array(
+    'prepare_cmd'	=> 'C',
+  ),
+);
+
 function chroot_src_dest($src, $dest) {
   if(is_numeric($src))
     $src = $dest;
@@ -40,32 +52,15 @@ class AdvExecChroot extends AdvExec {
       exit(1);
     }
 
-    if(array_key_exists('copy', $this->options)) {
-      foreach($this->options['copy'] as $src=>$dest) {
-	$paths = chroot_src_dest($src, $dest);
-	if($paths) {
-	  list($src, $dest) = $paths;
-	  $this->prepare("C", array("{$src}/", "{$dest}/"));
-	}
-      }
-    }
-
-    if(array_key_exists('sync', $this->options)) {
-      foreach($this->options['sync'] as $src=>$dest) {
-	$paths = chroot_src_dest($src, $dest);
-	if($paths) {
-	  list($src, $dest) = $paths;
-	  $this->prepare("R", array("{$src}/", "{$dest}/"));
-	}
-      }
-    }
-
-    if(array_key_exists('mount', $this->options)) {
-      foreach($this->options['mount'] as $src=>$dest) {
-	$paths = chroot_src_dest($src, $dest);
-	if($paths) {
-	  list($src, $dest) = $paths;
-	  $this->prepare("M", array("{$src}/", "{$dest}/"));
+    global $adv_exec_chroot_cmds;
+    foreach($adv_exec_chroot_cmds as $cmd=>$cmd_def) {
+      if(array_key_exists($cmd, $this->options)) {
+	foreach($this->options[$cmd] as $src=>$dest) {
+	  $paths = chroot_src_dest($src, $dest);
+	  if($paths) {
+	    list($src, $dest) = $paths;
+	    $this->prepare($cmd_def['prepare_cmd'], array("{$src}/", "{$dest}/"));
+	  }
 	}
       }
     }
