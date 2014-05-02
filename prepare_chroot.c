@@ -156,9 +156,18 @@ int main(int argc, char *argv[]) {
 	break;
 
       case 'M':
+      case 'm':
 	printf("mount %s => %s\n", src, dest);
 	mkdir_parents(final_dest, true);
 	if(err = mount(src, final_dest, NULL, MS_BIND, NULL)) {
+	  printf("Error mounting %s to %s: %i (%s)\n", src, final_dest, err, strerror(err));
+	  cleanup();
+	  exit(1);
+	}
+
+        // re-mount to read-only
+	if((cmd == 'm') &&
+	   (err = mount(src, final_dest, NULL, MS_BIND|MS_REMOUNT|MS_RDONLY, NULL))) {
 	  printf("Error mounting %s to %s: %i (%s)\n", src, final_dest, err, strerror(err));
 	  cleanup();
 	  exit(1);

@@ -8,6 +8,10 @@ $adv_exec_chroot_cmds = array(
     'prepare_cmd'	=> 'M',
     'force_dir'		=> true,
   ),
+  'mount-ro'	=> array(
+    'prepare_cmd'	=> 'm',
+    'force_dir'		=> true,
+  ),
   'sync'	=> array(
     'prepare_cmd'	=> 'R',
     'force_dir'		=> false,
