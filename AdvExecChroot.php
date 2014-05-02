@@ -7,7 +7,13 @@ function chroot_src_dest($src, $dest) {
   if(is_numeric($src))
     $src = $dest;
 
-  $src = realpath($src);
+  $x = realpath($src);
+  if($x === false) {
+    print "Warning: Source {$src} does not exist.\n";
+    return null;
+  }
+  $src = $x;
+
   $x = realpath($dest);
   if($x)
     $dest = $x;
@@ -36,22 +42,31 @@ class AdvExecChroot extends AdvExec {
 
     if(array_key_exists('copy', $this->options)) {
       foreach($this->options['copy'] as $src=>$dest) {
-	list($src, $dest) = chroot_src_dest($src, $dest);
-	$this->prepare("C", array("{$src}/", "{$dest}/"));
+	$paths = chroot_src_dest($src, $dest);
+	if($paths) {
+	  list($src, $dest) = $paths;
+	  $this->prepare("C", array("{$src}/", "{$dest}/"));
+	}
       }
     }
 
     if(array_key_exists('sync', $this->options)) {
       foreach($this->options['sync'] as $src=>$dest) {
-	list($src, $dest) = chroot_src_dest($src, $dest);
-	$this->prepare("R", array("{$src}/", "{$dest}/"));
+	$paths = chroot_src_dest($src, $dest);
+	if($paths) {
+	  list($src, $dest) = $paths;
+	  $this->prepare("R", array("{$src}/", "{$dest}/"));
+	}
       }
     }
 
     if(array_key_exists('mount', $this->options)) {
       foreach($this->options['mount'] as $src=>$dest) {
-	list($src, $dest) = chroot_src_dest($src, $dest);
-	$this->prepare("M", array("{$src}/", "{$dest}/"));
+	$paths = chroot_src_dest($src, $dest);
+	if($paths) {
+	  list($src, $dest) = $paths;
+	  $this->prepare("M", array("{$src}/", "{$dest}/"));
+	}
       }
     }
   }
