@@ -6,16 +6,19 @@ if(!isset($modulekit)) {
 $adv_exec_chroot_cmds = array(
   'mount'	=> array(
     'prepare_cmd'	=> 'M',
+    'force_dir'		=> true,
   ),
   'sync'	=> array(
     'prepare_cmd'	=> 'R',
+    'force_dir'		=> false,
   ),
   'copy'	=> array(
     'prepare_cmd'	=> 'C',
+    'force_dir'		=> false,
   ),
 );
 
-function chroot_src_dest($src, $dest) {
+function chroot_src_dest($src, $dest, $force_dir=false) {
   if(is_numeric($src))
     $src = $dest;
 
@@ -29,6 +32,16 @@ function chroot_src_dest($src, $dest) {
   $x = realpath($dest);
   if($x)
     $dest = $x;
+
+  if($force_dir && !is_dir($src)) {
+    print "Warning: Source {$src} is not a directory.\n";
+    return null;
+  }
+
+  if(is_dir($src)) {
+    $src .= "/";
+    $dest .= "/";
+  }
 
   return array($src, $dest);
 }
@@ -56,10 +69,10 @@ class AdvExecChroot extends AdvExec {
     foreach($adv_exec_chroot_cmds as $cmd=>$cmd_def) {
       if(array_key_exists($cmd, $this->options)) {
 	foreach($this->options[$cmd] as $src=>$dest) {
-	  $paths = chroot_src_dest($src, $dest);
+	  $paths = chroot_src_dest($src, $dest, $cmd_def['force_dir']);
 	  if($paths) {
 	    list($src, $dest) = $paths;
-	    $this->prepare($cmd_def['prepare_cmd'], array("{$src}/", "{$dest}/"));
+	    $this->prepare($cmd_def['prepare_cmd'], array("{$src}", "{$dest}"));
 	  }
 	}
       }
