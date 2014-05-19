@@ -39,6 +39,8 @@ class AdvExec {
       $cwd = getcwd();
 
     $cmd=$this->_exec_prepare($cmd, $cwd);
+    if(!$cmd)
+      return false;
 
     $proc=proc_open($cmd, $descriptors, $pipes, $cwd, $this->env);
     if(!is_resource($proc))

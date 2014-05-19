@@ -55,7 +55,9 @@ class AdvExecChroot extends AdvExec {
     parent::__construct($env, $options);
 
     $this->chroot = "/tmp/" . uniqid();
-    mkdir($this->chroot);
+    if(!mkdir($this->chroot)) {
+      throw new Exception("AdvExecChroot: Can't create temporary directory");
+    }
 
     $prepare_fd_desc_spec = array(
       0 => array("pipe", "r"),
@@ -65,8 +67,7 @@ class AdvExecChroot extends AdvExec {
 
     $this->prepare_proc = proc_open(dirname(__FILE__)."/prepare_chroot {$this->chroot}", $prepare_fd_desc_spec, $this->prepare_pipes);
     if(!is_resource($this->prepare_proc)) {
-      print "AdvExecChroot: Can't create prepare process\n";
-      exit(1);
+      throw new Exception("AdvExecChroot: Can't create prepare process");
     }
 
     global $adv_exec_chroot_cmds;
@@ -118,6 +119,9 @@ class AdvExecChroot extends AdvExec {
 
   function _exec_prepare($cmd, $cwd) {
     $cmd = parent::_exec_prepare($cmd, $cwd);
+
+    if(!$cmd)
+      return null;
 
     // make sure to copy all necessary libs to chroot env
     $c = explode(" ", $cmd);
