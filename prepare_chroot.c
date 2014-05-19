@@ -32,8 +32,11 @@ void cleanup() {
   int c = 0;
   char *buf;
 
-  for(c = 0; c < mounts_count; c++) {
-    umount(mounts[c]);
+  for(c = mounts_count - 1 ; c >= 0; c--) {
+    if(umount(mounts[c]) == -1) {
+      printf("Error unmounting %s: %s(%d)\n", mounts[c], strerror(errno), errno);
+      fflush(stdout);
+    }
 
     free(mounts[c]);
   }
