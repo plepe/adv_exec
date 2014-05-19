@@ -6,6 +6,7 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <stdbool.h>
+#include <errno.h>
 
 char *final_path(char *chroot_path, char *path) {
   char *ret;
@@ -32,7 +33,6 @@ void cleanup() {
   char *buf;
 
   for(c = 0; c < mounts_count; c++) {
-    printf("umount %s\n", mounts[c]);
     umount(mounts[c]);
 
     free(mounts[c]);
@@ -42,13 +42,11 @@ void cleanup() {
     buf = (char*)malloc(32 + strlen(rsync_src[c]) + strlen(rsync_dest[c]));
     sprintf(buf, "rsync -a \"%s\" \"%s\"", rsync_dest[c], rsync_src[c]);
 
-    printf("%s\n", buf);
     system(buf);
   }
 
   buf = (char*)malloc(32 + strlen(chroot_path));
   sprintf(buf, "rm -rf \"%s\"", chroot_path);
-  printf("%s\n", buf);
   system(buf);
 }
 
@@ -183,6 +181,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	mounts[mounts_count++] = final_dest;
+	break;
+
+      case 'Q':
+	cleanup();
+	printf("DONE\n");
+	exit(0);
 	break;
 
       default:

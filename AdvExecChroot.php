@@ -153,6 +153,15 @@ class AdvExecChroot extends AdvExec {
   function __destruct() {
     parent::__destruct();
 
+    fwrite($this->prepare_pipes[0], "Q\n");
+    while($r = fgets($this->prepare_pipes[1])) {
+      if(preg_match("/^DONE(.*)/", $r, $m)) {
+	break;
+      }
+      else
+	print $r;
+    }
+
     fclose($this->prepare_pipes[0]);
     fclose($this->prepare_pipes[1]);
     fclose($this->prepare_pipes[2]);
