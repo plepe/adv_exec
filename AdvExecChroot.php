@@ -107,14 +107,16 @@ class AdvExecChroot extends AdvExec {
       elseif(preg_match("/^\t([^ ]+) \(/", $r, $m))
 	$file = $m[1];
 
-      if($file) {
+      if($file && !file_exists("{$this->chroot}/{$file}")) {
 	$this->prepare("c", array($file, $file));
       }
     }
     pclose($f);
 
     // also copy the command itself and set executable flag
-    $this->prepare("C", array($cmd, $cmd));
+    if(!file_exists("{$this->chroot}/{$cmd}")) {
+      $this->prepare("C", array($cmd, $cmd));
+    }
   }
 
   function _exec_prepare($cmd, $cwd) {
