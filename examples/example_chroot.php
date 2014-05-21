@@ -43,4 +43,4 @@ $jail = new AdvExecChroot(
 // The necessary commands (ls, /..../java) will automatically be copied to the
 // chroot jail, including necessary libraries
 execute($jail, "./test.pl");
-execute($jail, "/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java HelloWorld");
+execute($jail, "java HelloWorld");

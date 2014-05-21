@@ -124,15 +124,20 @@ class AdvExecChroot extends AdvExec {
       return null;
 
     // make sure to copy all necessary libs to chroot env
-    $c = explode(" ", $cmd);
-    $c = $c[0];
+    $cmd_parts = explode(" ", $cmd);
     // if command has no absolute path, try to find executable
-    if(substr($c, 0, 1) != '/') {
-      $p = popen("which '{$c}'", "r");
-      $c = trim(fgets($p));
+    if(substr($cmd_parts[0], 0, 1) != '/') {
+      $p = popen("which '{$cmd_parts[0]}'", "r");
+      $cmd_parts[0] = trim(fgets($p));
       pclose($p);
     }
-    $this->chroot_copy_libs($c);
+
+    // replace executable by real path
+    $cmd_parts[0] = realpath($cmd_parts[0]);
+    $cmd = implode(" ", $cmd_parts);
+
+    // now copy necessary libs for executable
+    $this->chroot_copy_libs($cmd_parts[0]);
 
     if(array_key_exists('executables', $this->options)) {
       foreach($this->options['executables'] as $additional_executable) {
