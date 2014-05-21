@@ -110,7 +110,6 @@ class AdvExec {
   }
 
   function __destruct() {
-    print "destruct called\n";
   }
 }
 
