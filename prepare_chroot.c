@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <signal.h>
 
 char *final_path(char *chroot_path, char *path) {
   char *ret;
@@ -51,6 +52,8 @@ void cleanup() {
   buf = (char*)malloc(32 + strlen(chroot_path));
   sprintf(buf, "rm -rf \"%s\"", chroot_path);
   system(buf);
+
+  exit(0);
 }
 
 // from http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
@@ -96,6 +99,9 @@ int main(int argc, char *argv[]) {
     printf("prepare_chroot is not set to suid root!\n");
     exit(1);
   }
+
+  signal(SIGINT, cleanup);
+  signal(SIGTERM, cleanup);
 
   while(fgets(r, 1024, stdin) != NULL) {
     r[strlen(r) - 1] = '\0';
