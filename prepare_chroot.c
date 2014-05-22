@@ -52,7 +52,16 @@ void cleanup() {
   buf = (char*)malloc(32 + strlen(chroot_path));
   sprintf(buf, "rm -rf \"%s\"", chroot_path);
   system(buf);
+}
 
+void cleanup_signal() {
+  // wait a second - maybe processes need to die first?
+  sleep(1);
+
+  // now cleanup
+  cleanup();
+
+  // and exit
   exit(0);
 }
 
@@ -100,8 +109,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  signal(SIGINT, cleanup);
-  signal(SIGTERM, cleanup);
+  signal(SIGINT, cleanup_signal);
+  signal(SIGTERM, cleanup_signal);
 
   while(fgets(r, 1024, stdin) != NULL) {
     r[strlen(r) - 1] = '\0';
