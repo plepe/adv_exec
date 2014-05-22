@@ -65,6 +65,11 @@ class AdvExecChroot extends AdvExec {
       2 => array("pipe", "w"),
     );
 
+    if(!is_executable(dirname(__FILE__)."/prepare_chroot") ||
+       !is_executable(dirname(__FILE__)."/run_chroot")) {
+      throw new Exception("AdvExecChroot: Can't create prepare process - prepare_chroot and/or run_chroot do not exist");
+    }
+
     $this->prepare_proc = proc_open(dirname(__FILE__)."/prepare_chroot {$this->chroot}", $prepare_fd_desc_spec, $this->prepare_pipes);
     if(!is_resource($this->prepare_proc)) {
       throw new Exception("AdvExecChroot: Can't create prepare process");
