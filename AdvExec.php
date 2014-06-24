@@ -46,6 +46,8 @@ class AdvExec {
     if(!is_resource($proc))
       return false;
 
+    $status = proc_get_status($proc);
+
     $ret=array(
       "",
       "",
@@ -63,7 +65,7 @@ class AdvExec {
     if (isset($this->options['timeout']))
       $timestamp_terminate = time() + $this->options['timeout'];
 
-    while((!$done) &&
+    while(($status['running'] == true) &&
 	  ($timestamp_terminate === null || $timestamp_terminate > time())) {
       $streams=$orig_streams;
       $time_left_till_terminate = ($timestamp_terminate === null ? 60 : $timestamp_terminate - time());
@@ -71,18 +73,16 @@ class AdvExec {
       stream_select($streams['read'], $streams['write'], $streams['except'], $time_left_till_terminate);
 
       foreach($streams['read'] as $stream) {
-	if(feof($stream))
-	  $done=true;
-
 	foreach($pipes as $i=>$pipe) {
 	  if($stream==$pipe) {
 	    $ret[$i].=fgets($pipe);
 	  }
 	}
       }
+
+      $status = proc_get_status($proc);
     }
 
-    $status = proc_get_status($proc);
     if($status['running'] == true) {
       // from: http://us3.php.net/manual/en/function.proc-terminate.php#81353
       // close pipes by hand
