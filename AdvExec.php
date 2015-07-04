@@ -42,7 +42,7 @@ class AdvExec {
     if(!$cmd)
       return false;
 
-    $proc=proc_open($cmd, $descriptors, $pipes, $cwd, $this->env);
+    $proc=proc_open("exec {$cmd}", $descriptors, $pipes, $cwd, $this->env);
     if(!is_resource($proc))
       return false;
 
