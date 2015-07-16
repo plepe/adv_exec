@@ -1,5 +1,5 @@
 #!/usr/bin/php
-<?
+<?php
 include "../AdvExecChroot.php";
 
 function execute($jail, $cmd) {
