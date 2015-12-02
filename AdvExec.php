@@ -103,8 +103,15 @@ class AdvExec {
       proc_close($proc);
       $ret[0]="timeout";
     }
-    else
+    else {
+      // read everything which is still stuck in the pipes
+      foreach($pipes as $i => $pipe) {
+        while($r = fgets($pipe))
+          $ret[$i] .= $r;
+      }
+
       $ret[0]=$status['exitcode'];
+    }
 
     return $ret;
   }
