@@ -100,7 +100,7 @@ class AdvExec {
 	}
       }
 
-      proc_close($proc);
+      proc_terminate($proc);
       $ret[0]="timeout";
     }
     else {
